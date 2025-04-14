@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Buscador de Prendas</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            justify-content: flex-start;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        #buscador {
+            margin-bottom: 20px;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+        }
+
+        #campoBusqueda {
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            width: 300px;
+            font-size: 16px;
+        }
+
+        #contenedorResultados {
+            margin-top: 20px;
+            width: 90%;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: flex-start;
+        }
+
+        .prenda {
+            border: 1px solid #eee;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+            width: calc(33.33% - 20px);
+            margin-right: 20px;
+            box-sizing: border-box;
+        }
+
+        .prenda:nth-child(3n) {
+            margin-right: 0;
+        }
+
+        .prenda h3 {
+            margin-top: 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Buscador de Prendas</h1>
+    <div id="buscador">
+        <input type="text" id="campoBusqueda" placeholder="Buscar por nombre, tipo o ubicación">
+    </div>
+    <div id="contenedorResultados">
+        </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const campoBusqueda = document.getElementById('campoBusqueda');
+            const contenedorResultados = document.getElementById('contenedorResultados');
+
+            // **DATOS DE prendas.txt INCLUIDOS AQUÍ**
+            const datosPrendasCrudo = `
+Nombre,Tipo,Ubicación
+Vestido Corto Lirio,India,A1
+Camisa Venus,India,A1
+Blusa Costera,India,A2
+Vestido Corto Urano,India,A2
+Blusa Sarre,India,A2
+Vestido Corto Alagoas,India,A2
+Vesitdo Corto Aster,India,A3
+Vestido Largo Niza,India,A3
+Camisa Natus,India,A4
+Camisa Boheme,India,A4
+Vestido Corto Gaia,India,A5
+Blusa Hera,India,A5
+Vestido Corto Ulm,India,A5
+Vestido Largo Saskia,India,A5
+Vestido Corto Glen,India,A6 
+Vestido Melissa,India,B1
+Pantalon Andromeda,India,B1
+Vestido Camisero Virgo,India,B1
+Vestido Largo Bionica,India,B2
+Vestido Camisero Calixte,India,B3
+Kimono Largo Anais,India,B3
+Saco Nine,India,B3
+Bomber Lyra,India,B4
+Blusa Poppy,India,B4
+Blusa Urano,India,B4
+Vestido Largo Krefeld,India,B4
+Vestido Corto Caen,India,B5
+Blusa Alfie,India,B5
+Camisa Burdeos,India,B5
+Blusa Reims,India,B5
+Kimono Corto Traveris,India,B6
+Tunica Taurus,India,C1
+Camisa Izar,India,C1
+Camisa Pegasus,India,C1
+Falda Larga Louna,India,C2
+Camisa Capac,India,C2
+Pantalon Marsella,India,C3
+Camisa Saori,India,C3
+Camisa Kentua,India,C3
+Camisa Calita,India,C3
+Vestido Largo Berenices,India,C4
+Saco Angers,India,C4
+Vestido Largo Bamberg,India,C4
+Kimono Largo Sabrina,India,C5
+Kimono Largo Sabrina,India,C6
+Kimono Largo Ruan,India,C6
+Camisa Isamu,India,C6
+Camisa Oishi,India,C6
+        `;
+
+            function buscarPrendas(textoBusqueda) {
+                contenedorResultados.innerHTML = ''; // Limpiar resultados al inicio de cada búsqueda
+
+                if (textoBusqueda.trim() === '') {
+                    return; // Si el texto de búsqueda está vacío (o solo tiene espacios), no hacer nada más
+                }
+
+                const lineas = datosPrendasCrudo.trim().split('\n');
+                const encabezados = lineas[0] ? lineas[0].toLowerCase().split(',') : [];
+                const filas = lineas.slice(1);
+
+                filas.forEach(fila => {
+                    const columnas = fila.split(',');
+                    if (columnas.length === encabezados.length && encabezados.length === 3) {
+                        const nombre = columnas[0] ? columnas[0].toLowerCase() : '';
+                        const tipo = columnas[1] ? columnas[1].toLowerCase() : '';
+                        const ubicacion = columnas[2] ? columnas[2].toLowerCase() : '';
+
+                        if (nombre.includes(textoBusqueda) || tipo.includes(textoBusqueda) || ubicacion.includes(textoBusqueda)) {
+                            const prendaDiv = document.createElement('div');
+                            prendaDiv.classList.add('prenda');
+
+                            const nombreElemento = document.createElement('h3');
+                            nombreElemento.textContent = columnas[0];
+                            prendaDiv.appendChild(nombreElemento);
+
+                            const tipoElemento = document.createElement('p');
+                            tipoElemento.textContent = 'Tipo: ' + columnas[1];
+                            prendaDiv.appendChild(tipoElemento);
+
+                            const ubicacionElemento = document.createElement('p');
+                            ubicacionElemento.textContent = 'Ubicación: ' + columnas[2];
+                            prendaDiv.appendChild(ubicacionElemento);
+
+                            contenedorResultados.appendChild(prendaDiv);
+                        }
+                    }
+                });
+
+                if (contenedorResultados.innerHTML === '') {
+                    contenedorResultados.textContent = 'No se encontraron resultados.';
+                }
+            }
+
+            campoBusqueda.addEventListener('input', function() {
+                buscarPrendas(this.value.toLowerCase());
+            });
+
+            // No mostrar todos los resultados al inicio
+            // buscarPrendas('');
+        });
+    </script>
+
+</body>
+</html>
