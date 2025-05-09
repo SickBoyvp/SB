@@ -78,6 +78,28 @@
             color: #777; /* Color del texto de la prenda */
             margin-bottom: 5px;
         }
+
+        /* >>>>> ESTILOS PARA LA MARCA DE AGUA <<<<< */
+        #watermark {
+            position: fixed; /* Fija el elemento en la ventana del navegador */
+            bottom: 20px;    /* Distancia desde el borde inferior */
+            right: 20px;     /* Distancia desde el borde derecho */
+            opacity: 0.5;    /* Controla la transparencia (0 a 1). Ajusta este valor. */
+            z-index: 1000;   /* Asegura que esté por encima de la mayoría de los elementos */
+            pointer-events: none; /* Permite hacer clic a través de la marca de agua */
+
+            /* Estilos opcionales para el texto */
+            font-size: 14px;
+            color: #000; /* Color del texto. Ajusta para que se vea bien con la opacidad */
+            /* Si quieres una sombra para que el texto se vea mejor sobre diferentes fondos */
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+            /* Para evitar que el usuario pueda seleccionar el texto */
+            user-select: none;
+            /* Para evitar que el texto se rompa en varias líneas */
+            white-space: nowrap;
+        }
+        /* >>>>> FIN ESTILOS MARCA DE AGUA <<<<< */
+
     </style>
 </head>
 <body>
@@ -111,7 +133,7 @@ Vestido Corto Gaia,India,A5
 Blusa Hera,India,A5
 Vestido Corto Ulm,India,A5
 Vestido Largo Saskia,India,A5
-Vestido Corto Glen,India,A6 
+Vestido Corto Glen,India,A6
 Vestido Melissa,India,B1
 Pantalon Andromeda,India,B1
 Vestido Camisero Virgo,India,B1
@@ -718,12 +740,15 @@ Sweater San Sebastian,Sweater,2.9
 Sweater San Sebastian,Sweater,2.10
 Sweater Edith,,Sweater,2.11
 Sweater Granada,Sweater,2.12
-        `;
+            `;
 
             function buscarPrendas(textoBusqueda) {
                 contenedorResultados.innerHTML = ''; // Limpiar resultados al inicio de cada búsqueda
 
-                if (textoBusqueda.trim() === '') {
+                // Convertir textoBusqueda a minúsculas una vez
+                const textoBusquedaLower = textoBusqueda.trim().toLowerCase();
+
+                if (textoBusquedaLower === '') {
                     return; // Si el texto de búsqueda está vacío (o solo tiene espacios), no hacer nada más
                 }
 
@@ -731,27 +756,33 @@ Sweater Granada,Sweater,2.12
                 const encabezados = lineas[0] ? lineas[0].toLowerCase().split(',') : [];
                 const filas = lineas.slice(1);
 
+                let resultadosEncontrados = false; // Bandera para saber si encontramos algo
+
                 filas.forEach(fila => {
                     const columnas = fila.split(',');
-                    if (columnas.length === encabezados.length && encabezados.length === 3) {
+                    // Asegurarse de que hay al menos 3 columnas y que no es una línea de encabezado (que debería ser filtrada por slice(1) de todos modos) o un comentario con '#'
+                    if (columnas.length >= 3 && !fila.trim().startsWith('#')) {
                         const nombre = columnas[0] ? columnas[0].toLowerCase() : '';
                         const tipo = columnas[1] ? columnas[1].toLowerCase() : '';
                         const ubicacion = columnas[2] ? columnas[2].toLowerCase() : '';
 
-                        if (nombre.includes(textoBusqueda) || tipo.includes(textoBusqueda) || ubicacion.includes(textoBusqueda)) {
+                        // Verificar si el texto de búsqueda (en minúsculas) está incluido en nombre, tipo o ubicación (también en minúsculas)
+                        if (nombre.includes(textoBusquedaLower) || tipo.includes(textoBusquedaLower) || ubicacion.includes(textoBusquedaLower)) {
+                            resultadosEncontrados = true; // Encontramos al menos un resultado
+
                             const prendaDiv = document.createElement('div');
                             prendaDiv.classList.add('prenda');
 
                             const nombreElemento = document.createElement('h3');
-                            nombreElemento.textContent = columnas[0];
+                            nombreElemento.textContent = columnas[0]; // Mostrar el texto original (con mayúsculas si las tiene)
                             prendaDiv.appendChild(nombreElemento);
 
                             const tipoElemento = document.createElement('p');
-                            tipoElemento.textContent = 'Tipo: ' + columnas[1];
+                            tipoElemento.textContent = 'Tipo: ' + columnas[1]; // Mostrar el texto original
                             prendaDiv.appendChild(tipoElemento);
 
                             const ubicacionElemento = document.createElement('p');
-                            ubicacionElemento.textContent = 'Ubicación: ' + columnas[2];
+                            ubicacionElemento.textContent = 'Ubicación: ' + columnas[2]; // Mostrar el texto original
                             prendaDiv.appendChild(ubicacionElemento);
 
                             contenedorResultados.appendChild(prendaDiv);
@@ -759,19 +790,34 @@ Sweater Granada,Sweater,2.12
                     }
                 });
 
-                if (contenedorResultados.innerHTML === '') {
-                    contenedorResultados.textContent = 'No se encontraron resultados.';
+                // Si después de revisar todas las filas no se encontraron resultados
+                if (!resultadosEncontrados && textoBusquedaLower !== '') {
+                     contenedorResultados.innerHTML = '<p>No se encontraron resultados.</p>'; // Usa innerHTML para aplicar el estilo por defecto de <p>
+                } else if (textoBusquedaLower === '') {
+                     // Si el campo de búsqueda está vacío, no mostrar mensaje "No se encontraron resultados".
+                     contenedorResultados.innerHTML = '';
                 }
             }
 
+
+            // Agregado un pequeño delay al input para no buscar en cada tecla (opcional, pero mejora rendimiento)
+            let timer;
             campoBusqueda.addEventListener('input', function() {
-                buscarPrendas(this.value.toLowerCase());
+                clearTimeout(timer); // Limpia el temporizador anterior
+                const valorBusqueda = this.value; // Captura el valor actual
+                timer = setTimeout(function() {
+                    buscarPrendas(valorBusqueda); // Ejecuta la búsqueda después de un breve retraso
+                }, 150); // Retraso de 300 milisegundos (ajusta si es necesario)
             });
 
+
             // No mostrar todos los resultados al inicio
-            // buscarPrendas('');
+            // buscarPrendas(''); // Descomentar si quieres que cargue todo al inicio
         });
     </script>
 
-</body>
+    <div id="watermark">
+        © 2025 CMN
+    </div>
+    </body>
 </html>
