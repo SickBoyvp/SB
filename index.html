@@ -15,28 +15,33 @@
             min-height: 100vh;
             justify-content: flex-start;
             background-color: #f4f4f4; /* Color de fondo de la página */
+            padding: 20px; /* Añade un poco de padding general para evitar que el contenido toque los bordes */
+            box-sizing: border-box; /* Asegura que el padding no añada ancho extra */
         }
 
         h1 {
             text-align: center;
             margin-bottom: 20px;
             color: #333; /* Color del título principal */
+            font-size: 2.5em; /* Tamaño del título para pantallas grandes */
         }
 
         #buscador {
             margin-bottom: 20px;
             width: 100%;
+            max-width: 600px; /* Limita el ancho máximo del buscador */
             display: flex;
             justify-content: center;
         }
 
         #campoBusqueda {
-            padding: 10px 15px;
+            padding: 12px 20px; /* Aumenta el padding para mejor toque en móviles */
             border: 1px solid #ccc;
             border-radius: 5px;
-            width: 300px;
-            font-size: 16px;
+            width: 100%; /* El 100% ocupará todo el ancho del #buscador */
+            font-size: 1em; /* Ajusta el tamaño de fuente para mejor lectura */
             box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1); /* Sombra del campo de búsqueda */
+            box-sizing: border-box; /* Importante para que el padding no exceda el 100% */
         }
 
         #campoBusqueda:focus {
@@ -47,36 +52,43 @@
 
         #contenedorResultados {
             margin-top: 20px;
-            width: 90%;
+            width: 100%; /* Ocupa el 100% del ancho disponible */
+            max-width: 1200px; /* Limita el ancho máximo del contenedor de resultados */
             display: flex;
             flex-wrap: wrap;
-            justify-content: flex-start;
+            justify-content: center; /* Centra las prendas horizontalmente */
+            gap: 20px; /* Espacio entre las prendas */
         }
 
         .prenda {
             border: 1px solid #ddd;
             padding: 15px;
-            margin-bottom: 10px;
             border-radius: 5px;
-            width: calc(33.33% - 20px);
-            margin-right: 20px;
+            width: calc(33.33% - 20px); /* 3 columnas en pantallas grandes, ajustado por el gap */
             box-sizing: border-box;
             background-color: #fff; /* Fondo de cada prenda */
             box-shadow: 1px 1px 3px rgba(0, 0, 0, 0.05); /* Sombra suave de las prendas */
+            flex-grow: 1; /* Permite que las prendas crezcan para ocupar el espacio */
+            min-width: 280px; /* Ancho mínimo para evitar que se hagan demasiado pequeñas */
         }
 
-        .prenda:nth-child(3n) {
+        /* Remueve el margin-right que ya no es necesario con gap */
+        /* .prenda:nth-child(3n) {
             margin-right: 0;
-        }
+        } */
 
         .prenda h3 {
             margin-top: 0;
             color: #555; /* Color del título de la prenda */
+            font-size: 1.2em;
+            word-break: break-word; /* Evita desbordamiento de texto largo */
         }
 
         .prenda p {
             color: #777; /* Color del texto de la prenda */
             margin-bottom: 5px;
+            font-size: 0.9em;
+            word-break: break-word; /* Evita desbordamiento de texto largo */
         }
 
         /* >>>>> ESTILOS PARA LA MARCA DE AGUA <<<<< */
@@ -87,18 +99,60 @@
             opacity: 0.5;    /* Controla la transparencia (0 a 1). Ajusta este valor. */
             z-index: 1000;   /* Asegura que esté por encima de la mayoría de los elementos */
             pointer-events: none; /* Permite hacer clic a través de la marca de agua */
-
-            /* Estilos opcionales para el texto */
             font-size: 14px;
             color: #000; /* Color del texto. Ajusta para que se vea bien con la opacidad */
-            /* Si quieres una sombra para que el texto se vea mejor sobre diferentes fondos */
             text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
-            /* Para evitar que el usuario pueda seleccionar el texto */
             user-select: none;
-            /* Para evitar que el texto se rompa en varias líneas */
             white-space: nowrap;
         }
         /* >>>>> FIN ESTILOS MARCA DE AGUA <<<<< */
+
+        /* --- MEDIA QUERIES PARA RESPONSIVIDAD --- */
+
+        /* Para pantallas medianas (tabletas y laptops pequeñas) */
+        @media (max-width: 992px) {
+            .prenda {
+                width: calc(50% - 20px); /* 2 columnas */
+            }
+        }
+
+        /* Para pantallas pequeñas (celulares) */
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2em; /* Reduce el tamaño del título */
+            }
+
+            #campoBusqueda {
+                font-size: 0.9em; /* Reduce el tamaño de fuente del input */
+            }
+
+            .prenda {
+                width: 100%; /* 1 columna */
+                margin-right: 0; /* Asegura que no haya margen a la derecha */
+            }
+
+            #watermark {
+                font-size: 12px; /* Reduce el tamaño de la marca de agua en móviles */
+                bottom: 10px;
+                right: 10px;
+            }
+        }
+
+        /* Para pantallas aún más pequeñas (celulares muy pequeños) */
+        @media (max-width: 480px) {
+            body {
+                padding: 10px; /* Menos padding en los bordes */
+            }
+            h1 {
+                font-size: 1.8em;
+            }
+            #campoBusqueda {
+                padding: 10px 15px;
+            }
+            .prenda {
+                padding: 10px;
+            }
+        }
 
     </style>
 </head>
@@ -108,7 +162,7 @@
         <input type="text" id="campoBusqueda" placeholder="Buscar por nombre, tipo o ubicación">
     </div>
     <div id="contenedorResultados">
-        </div>
+    </div>
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
@@ -974,10 +1028,10 @@ Musculosa Alda,Remeras,R6
 
                 // Si después de revisar todas las filas no se encontraron resultados
                 if (!resultadosEncontrados && textoBusquedaLower !== '') {
-                     contenedorResultados.innerHTML = '<p>No se encontraron resultados.</p>'; // Usa innerHTML para aplicar el estilo por defecto de <p>
+                    contenedorResultados.innerHTML = '<p>No se encontraron resultados.</p>'; // Usa innerHTML para aplicar el estilo por defecto de <p>
                 } else if (textoBusquedaLower === '') {
-                     // Si el campo de búsqueda está vacío, no mostrar mensaje "No se encontraron resultados".
-                     contenedorResultados.innerHTML = '';
+                    // Si el campo de búsqueda está vacío, no mostrar mensaje "No se encontraron resultados".
+                    contenedorResultados.innerHTML = '';
                 }
             }
 
@@ -989,7 +1043,7 @@ Musculosa Alda,Remeras,R6
                 const valorBusqueda = this.value; // Captura el valor actual
                 timer = setTimeout(function() {
                     buscarPrendas(valorBusqueda); // Ejecuta la búsqueda después de un breve retraso
-                }, 150); // Retraso de 300 milisegundos (ajusta si es necesario)
+                }, 150); // Retraso de 150 milisegundos (ajusta si es necesario)
             });
 
 
@@ -1001,5 +1055,5 @@ Musculosa Alda,Remeras,R6
     <div id="watermark">
         © 2025 CMN
     </div>
-    </body>
+</body>
 </html>
