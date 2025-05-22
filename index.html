@@ -70,6 +70,1082 @@
             box-shadow: 1px 1px 3px rgba(0, 0, 0, 0.05); /* Sombra suave de las prendas */
             flex-grow: 1; /* Permite que las prendas crezcan para ocupar el espacio */
             min-width: 280px; /* Ancho mínimo para evitar que se hagan demasiado pequeñas */
+            display: flex; /* Para organizar el contenido, especialmente la imagen */
+            flex-direction: column; /* Coloca los elementos uno debajo del otro */
+            align-items: center; /* Centra el contenido horizontalmente */
+            text-align: center; /* Centra el texto */
+        }
+
+        .prenda h3 {
+            margin-top: 0;
+            color: #555; /* Color del título de la prenda */
+            font-size: 1.2em;
+            word-break: break-word; /* Evita desbordamiento de texto largo */
+        }
+
+        .prenda p {
+            color: #777; /* Color del texto de la prenda */
+            margin-bottom: 5px;
+            font-size: 0.9em;
+            word-break: break-word; /* Evita desbordamiento de texto largo */
+        }
+
+        /* >>>>> ESTILOS PARA LA IMAGEN DE LA PRENDA <<<<< */
+        .prenda img {
+            max-width: 100%; /* Asegura que la imagen no se desborde */
+            height: auto; /* Mantiene la proporción */
+            display: block; /* Elimina espacio extra */
+            margin-bottom: 10px; /* Espacio debajo de la imagen */
+            border-radius: 5px; /* Bordes ligeramente redondeados */
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1); /* Sombra suave */
+            object-fit: contain; /* CAMBIO AQUÍ: La imagen se escala para caber completamente dentro del contenedor */
+            max-height: 200px; /* Altura máxima para uniformizar si tus imágenes son muy variadas */
+            width: 100%; /* Permite que la imagen ocupe todo el ancho disponible */
+        }
+        /* >>>>> FIN ESTILOS IMAGEN <<<<< */
+
+        /* >>>>> ESTILOS PARA LA MARCA DE AGUA <<<<< */
+        #watermark {
+            position: fixed; /* Fija el elemento en la ventana del navegador */
+            bottom: 20px;    /* Distancia desde el borde inferior */
+            right: 20px;     /* Distancia desde el borde derecho */
+            opacity: 0.5;    /* Controla la transparencia (0 a 1). Ajusta este valor. */
+            z-index: 1000;   /* Asegura que esté por encima de la mayoría de los elementos */
+            pointer-events: none; /* Permite hacer clic a través de la marca de agua */
+            font-size: 14px;
+            color: #000; /* Color del texto. Ajusta para que se vea bien con la opacidad */
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+            user-select: none;
+            white-space: nowrap;
+        }
+        /* >>>>> FIN ESTILOS MARCA DE AGUA <<<<< */
+
+        /* --- MEDIA QUERIES PARA RESPONSIVIDAD --- */
+        /* Para pantallas medianas (tabletas y laptops pequeñas) */
+        @media (max-width: 992px) {
+            .prenda {
+                width: calc(50% - 20px); /* 2 columnas */
+            }
+        }
+
+        /* Para pantallas pequeñas (celulares) */
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2em; /* Reduce el tamaño del título */
+            }
+
+            #campoBusqueda {
+                font-size: 0.9em; /* Reduce el tamaño de fuente del input */
+            }
+
+            .prenda {
+                width: 100%; /* 1 columna */
+                margin-right: 0; /* Asegura que no haya margen a la derecha */
+            }
+            #watermark {
+                font-size: 12px; /* Reduce el tamaño de la marca de agua en móviles */
+                bottom: 10px;
+                right: 10px;
+            }
+        }
+        /* Para pantallas aún más pequeñas (celulares muy pequeños) */
+        @media (max-width: 480px) {
+            body {
+                padding: 10px; /* Menos padding en los bordes */
+            }
+            h1 {
+                font-size: 1.8em;
+            }
+            #campoBusqueda {
+                padding: 10px 15px;
+            }
+            .prenda {
+                padding: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1>Buscador de Prendas</h1>
+    <div id="buscador">
+        <input type="text" id="campoBusqueda" placeholder="Buscar por nombre, tipo o ubicación">
+    </div>
+    <div id="contenedorResultados">
+        </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const campoBusqueda = document.getElementById('campoBusqueda');
+            const contenedorResultados = document.getElementById('contenedorResultados');
+
+            // **DATOS DE prendas.txt INCLUIDOS AQUÍ**
+            // IMPORTANTE: Ahora cada línea debe tener 4 campos: Nombre,Tipo,Ubicación,URL_Imagen
+            // Si no hay imagen, deja el último campo vacío o con "Proximo Ingreso"
+            const datosPrendasCrudo = `
+Nombre,Tipo,Ubicación,URL_Imagen
+# INDIA
+Vestido Corto Lirio,India,A1,
+Camisa Venus,India,A1,
+Blusa Costera,India,A2,
+Vestido Corto Urano,India,A2,
+Blusa Sarre,India,A2,
+Vestido Corto Alagoas,India,A2,
+Vestido Corto Aster,India,A3,
+Vestido Largo Niza,India,A3,
+Camisa Natus,India,A4,
+Camisa Boheme,India,A4,
+Vestido Corto Gaia,India,A5,
+Blusa Hera,India,A5,
+Vestido Corto Ulm,India,A5,
+Vestido Largo Saskia,India,A5,
+Vestido Corto Glen,India,A6,
+Vestido Melissa,India,B1,
+Pantalon Andromeda,India,B1,
+Vestido Camisero Virgo,India,B1,
+Vestido Largo Bionica,India,B2,
+Vestido Camisero Calixte,India,B3,
+Kimono Largo Anais,India,B3,
+Saco Nine,India,B3,
+Bomber Lyra,India,B4,
+Blusa Poppy,India,B4,
+Blusa Urano,India,B4,
+Vestido Largo Krefeld,India,B4,
+Vestido Corto Caen,India,B5,
+Blusa Alfie,India,B5,
+Camisa Burdeos,India,B5,
+Blusa Reims,India,B5,
+Kimono Corto Traveris,India,B6,
+Tunica Taurus,India,C1,
+Camisa Izar,India,C1,
+Camisa Pegasus,India,C1,
+Falda Larga Louna,India,C2,
+Camisa Capac,India,C2,
+Pantalon Marsella,India,C3,
+Camisa Saori,India,C3,
+Camisa Kentua,India,C3,
+Camisa Calita,India,C3,
+Vestido Largo Berenices,India,C4,
+Saco Angers,India,C4,
+Vestido Largo Bamberg,India,C4,
+Kimono Largo Sabrina,India,C5,
+Kimono Largo Sabrina,India,C6,
+Kimono Largo Ruan,India,C6,
+Camisa Isamu,India,C6,
+Camisa Oishi,India,C6,
+Saco Casiopeia,India,D1,
+Bomber Paloma,India,D1,
+Pantalon Delfiny,India,D2,
+Vestido Largo Fany,India,D2,
+Chaleco Roof,India,D2,
+Blusa Rose,India,D3,
+Camisa Mercurio,India,D3,
+Camisa Berlin,India,D3,
+Camisa Neptuno,India,D3,
+Camisa Larga Dollys,India,D4,
+Vestido Largo Dijon,India,D5,
+Pantalon Marte,India,D5,
+Vestido Largo Oceanus,India,D6,
+Kimono Largo Dresde,India,D6,
+Kimono Largo Acapulco,India,E1,
+Mono Largo Veracruz,India,E1,
+Kimono Oxaca,India,E1,
+Mono Largo Tula,India,E1,
+Top Monterrey,India,E1,
+Top Niki,India,E1,
+Vestido Camisero Zacha,India,E2,
+Vestido Largo Hermes,India,E2,
+Vetido Corto Elara,India,E2,
+Top Lille,India,E3,
+Blusa Rennes,India,E3,
+Saco City,India,E3,
+Vestido Largo Centaurus,India,E3,
+Top Carmelo,India,E3,
+Saco Cottbus,India,E4,
+Vestido Largo Amster,India,E4,
+Vestido Corto Munster,India,E4,
+Camisa Saturnina,India,E4,
+Falda Larga Jena,India,E5,
+Vestido Sabik,India,E5,
+Vestido Largo Altair,India,E5,
+Camisa Baden,India,E5,
+Vestido Largo Carola,India,E5,
+Blusa Franka,India,E6,
+Saco Tours,India,E6,
+Camisa Delta,India,E6,
+Vestido Corto Frieda,India,E6,
+Vestido Largo Carmen,India,F1,
+Vestido Largo Morella,India,F1,
+Kimono Cancun,India,F1,
+Vestido Camisero Munich,India,F2,
+Pantalon Oasis,India,F2,
+Pantalon Colette,India,F2,
+Pantalon Heloise,India,F3,
+Pantalon Sasa,India,F3,
+Vestido Corto Abigail,India,F3,
+Vestido Camisero Brest,India,F4,
+Vestido Largo Romane,India,F4,
+Top Cloe,India,F4,
+Falda Larga Amiens,India,F5,
+Camisa Maren,India,F5,
+Blusa Adele,India,F5,
+Kimono Largo Limo,India,F5,
+Camisa Sajonia,India,F6,
+Saco Capricornio,India,F6,
+Pantalon Cabot,India,F6,
+Vestido Camisero Nanda,India,F6,
+Camisa Bonn,India,F6,
+Vestido Corto Rostock,India,F6,
+Top Culiacan,India,G1,
+Top Allende,India,G1,
+Vestido Largo Columba,India,G1,
+Blusa Serpens,India,G1,
+Tunica Taylor,India,G3,
+Camisa Parbat,India,G3,
+Camisa Cove,India,G3,
+Vestido Largo Rolling,India,G4,
+Chaleco Atlas,India,G4,
+Tunica Taylor,India,G4,
+Camisa Saturno,India,G5,
+Camisa Hamburgo,India,G5,
+Saco Aliaga,India,G5,
+Vestido Camisero Auriga,India,G5,
+Vestido Largo Apolo,India,G6,
+Camisa Salys,India,G6,
+Blusa Hesse,India,G6,
+Blusa Jupiter,India,G6,
+Vestido Largo Gemini,India,H1,
+Vestido Largo Soraya,India,H1,
+Kimono Corto Olimpo,India,I1,
+Camisa Kenta,India,I1,
+Vestido Largo Kelly,India,I1,
+Top Flyn,India,I1,
+Top Casandra,India,I1,
+Vestido Corto Pierola,India,I1,
+Camisa Sirpe,India,J1,
+Saco Justo,India,J1,
+Vestido Corto Rio,India,J1,
+Vestido Corto Vivanco,India,J1,
+Kimono Caldis,India,J1,
+Falda Asturias,India,J1,
+Vestido Largo Prince,India,K1,
+Vestido Largo Panko,India,K1,
+Top Celine,India,K1,
+Blusa Kairi,India,K1,
+Vestido Corto Daisy,India,K1,
+Vestido Corto Milena,India,K1,
+Camisa Sierpe,India,K1,
+Vestido Largo Paris,India,L1,
+Vestido Largo Morant,India,L1,
+Mono Largo Hudson,India,L1,
+Vestido Corto Furan,India,L1,
+Camisa Alcazar,India,L1,
+Blusa Alem,India,L1,
+Blusa Irina,India,L1,
+Kimono Imy,India,L1,
+Vestido Corto Lexie,India,L1,
+Camisa Kazumi,India,L1,
+Blusa Bremen,India,L5,
+Falda Larga Osma,India,L5,
+Blusa Iris,India,L5,
+Saco Aramburu,India,L5,
+Pantalon Camila,India,L6,
+Top Ysy,India,L6,
+Blusa Paiva,India,L6,
+Camisa Stacy,India,L6,
+Vestido Corto Toba,India,M1,
+Vestido Largo Mantra,India,M1,
+Blusa Turnas,India,M1,
+Camisa Kyomi,India,M1,
+Camisa Fuyu,India,M1,
+Vestido Corto Copito,India,M2,
+Camisa Evelina,India,M2,
+Vestido Largo Wanna,India,M3,
+Vestido Largo Wanna,India,M4,
+Blusa Funes,India,M4,
+Blusa Arona,India,M4,
+Blusa Charo,India,M5,
+Vestido Largo Alisos,India,M5,
+Vestido Largo Jasper,India,M6,
+Pantalon Lyon,India,M6,
+Vestido Corto Egipto,India,N1,
+Blusa Koshi,India,N1,
+Vestido Corto Eva,India,N1,
+Musculosa Tijuana,India,N1,
+Vestido Largo Cazapa,India,N1,
+Vestido Largo Mirna,India,N1,
+Blusa Minerva,India,N2,
+Blusa Minerva,India,N3,
+Remeron Wendy,India,N3,
+Vestido Largo Masha,India,N3,
+Blusa Carol,India,N4,
+Vestido Kriens,India,N4,
+Mono Corto Kalisa,India,N4,
+Vestido Largo Frany,India,N5,
+Blusa Angamos,India,N6,
+Vestido Corto Vilaro,India,N6,
+Blusa Muriel,India,N6,
+Vestido Corto Wesly,India,Ñ1,
+Camisa Ponce,India,Ñ1,
+Vestido Largo Mantilla,India,Ñ1,
+Vestido Corto Canaval,India,Ñ1,
+Vestido Largo Natal,India,Ñ1,
+Vestido Corto Angra,India,Ñ1,
+Blusa Prado,India,Ñ2,
+Blusa Melia,India,Ñ2,
+Vestido Largo Garzon,India,Ñ2,
+Vestido Corto Gambioa,India,Ñ3,
+Falda Corta Acasia,India,Ñ3,
+Falta Corta Akiras,India,Ñ3,
+Top Marly,India,Ñ4,
+Camisa Allen,India,Ñ4,
+Camisa Ayllon,India,Ñ4,
+Vestido Corto Malaui,India,Ñ5,
+Vestido Largo Pisco,India,Ñ5,
+Blusa Giuli,India,Ñ6,
+Vestido Largo Gerais,India,O1,
+Saco Justin,India,O1,
+Vestido Largo Minka,India,O1,
+Camisa Misha,India,O1,
+Vestido Largo Fiama,India,O1,
+Vestido Largo Clemen,India,O1,
+Blusa Margot,India,O2,
+Top Almendra,India,O2,
+Camisa Larga Cenepa,India,O2,
+Vestido Corto Yessi,India,O2,
+Vestido Largo Pandu,India,O3,
+Vestido Largo Pandu,India,O4,
+Vestido Corto Killys,India,O4,
+Pantalon Korea,India,O5,
+Vestido Largo Inca,India,O5,
+Vestido Largo Vilma,India,O5,
+Vestido Largo Dariu,India,O6,
+Saco Jaleo,India,O6,
+Vestido Largo Nicky,India,O6,
+Vestido Corto Laia,India,O6,
+Vestido Largo Loures,India,P1,
+Vestido Largo Ficus,India,P1,
+Vestido Largo Anai,India,P1,
+Mono Largo Fijis,India,P2,
+Vestido Largo Ileana,India,P3,
+Vestido Largo Villaran,India,P3,
+Blusa Niche,India,P4,
+Vestido Corto Grau,India,P4,
+Vestido Corto Janu,India,P5,
+Vestido Largo Aura,India,P5,
+Vestido Corto Angeles,India,P6,
+Camisa Carrion,India,P6,
+Blusa Mireya,India,P6,
+Vestido Largo Sveta,India,Q1,
+Blusa Zaria,India,Q1,
+Vestido Corto Duarez,India,Q1,
+Kimono Largo Quero,India,Q1,
+Blusa Chimu,India,Q2,
+Vestido Largo Bienal,India,Q2,
+Blusa Atenas,India,Q2,
+Blusa Nuts,India,Q3,
+Vestido Corto Lohan,India,Q3,
+Vestido Corto Anika,India,Q4,
+Kimono Corto Karenina,India,Q4,
+Falda Larga Akira,India,Q4,
+Falda Corta Narea,India,Q5,
+Blusa Minis,India,Q5,
+Blusa Zoila,India,Q6,
+Blusa Fary,India,Q6,
+Vestido Corto Arica,India,Q6,
+Vestido Corto Meza,India,R1,
+Blusa Clavel,India,R1,
+Vestido Largo Andy,India,R1,
+Vestido Corto Balta,India,R1,
+Kimono Largo Raisa,India,R1,
+Kimono Rush,India,R1,
+Blusa Larco,India,R2,
+Vestido Largo Cuba,India,R2,
+Vestido Largo Azar,India,R2,
+Vestido Corto Nieves,India,R3,
+Pantalon Bellock,India,R3,
+Vestido Largo Renata,India,R4,
+Vestido Largo Keyla,India,R4,
+Vestido Largo Corine,India,R5,
+Vestido Largo Corine,India,R6,
+Vestido Largo Azufre,India,R6,
+Camisa Palma,India,R6,
+#PANTALONES
+Short Kimi,Pantalones,A1,
+Short Pinar,Pantalones,A1,
+Falda Martina,Pantalones,A1,
+Short Cadiz,Pantalones,A1,
+Proximo Ingreso,Pantalones,A1,
+Falda Diana,Pantalones,A2,
+Falda Viva,Pantalones,A2,
+Falda Lucha,Pantalones,A3,
+Falda Cuarzo,Pantalones,A3,
+Falda Toia,Pantalones,A3,
+Falda Leia,Pantalones,A3,
+Falda Emily,Pantalones,A4,
+Short Hever,Pantalones,A4,
+Short Agus,Pantalones,A5,
+Short Corvus,Pantalones,A5,
+Short Lore,Pantalones,A6,
+Short Bacalar,Pantalones,A6,
+Short Sams,Pantalones,B1,
+Short Valencia,Pantalones,B1,
+Short Polonia,Pantalones,B1,
+Short Rebeca,Pantalones,B1,
+Short Cream,Pantalones,B1,
+Short Amatista,Pantalones,B1,
+Short Amatista,Pantalones,B2,
+Short Rocio,Pantalones,B2,
+Short Kayla,Pantalones,B2,
+Falda Belu,Pantalones,B3,
+Falda Pirita,Pantalones,B3,
+Short Magali,Pantalones,B3,
+Falda Conie,Pantalones,B4,
+Falda Conie,Pantalones,B5,
+Pantalon Carol,Pantalones,B5,
+Pantalon Carol,Pantalones,B6,
+Falda Larga Alba,Pantalones,C1,
+Short Bruna,Pantalones,C1,
+Falda Milena,Pantalones,C1,
+Pantalon Luz,Pantalones,C2,
+Pantalon Luz,Pantalones,C3,
+Pantalon Tina,Pantalones,C4,
+Pantalon Tina,Pantalones,C5,
+Pantalon Julia,Pantalones,C6,
+Pantalon Luz,Pantalones,D1,
+Pantalon Ziva,Pantalones,D1,
+Pantalon Luz,Pantalones,D2,
+Pantalon Luz,Pantalones,D3,
+Pantalon Luz,Pantalones,D4,
+Pantalon Luz,Pantalones,D5,
+Pantalon Luz,Pantalones,D6,
+Pantalon Aure,Pantalones,E2,
+Chupin Lorena,Pantalones,E2,
+Pantalon Gianna,Pantalones,E3,
+Pantalon Casil,Pantalones,E3,
+Legging Vera,Pantalones,E4,
+Pantalon Bea,Pantalones,E5,
+Oxford Corine,Pantalones,E6,
+Pantalon Oxford Reina,Pantalones,E6,
+Pantalon Laguna,Pantalones,E6,
+Pantalon Jacky,Pantalones,F2,
+Pantalon Angela,Pantalones,F2,
+Pantalon Rouge,Pantalones,F3,
+Pantalon Fleur,Pantalones,F3,
+Pantalon Rosario,Pantalones,F3,
+Pantalon Moon,Pantalones,F4,
+Pantalon Amsterdam,Pantalones,F5,
+Pantalon Amsterdam,Pantalones,F6,
+Pantalon Funny,Pantalones,G2,
+Pantalon Funny,Pantalones,G3,
+Oxford Luana,Pantalones,G3,
+Pantalon Simona,Pantalones,G3,
+Pantalon Flor,Pantalones,G4,
+Pantalon Heya,Pantalones,G5,
+Pantalon Luk,Pantalones,G6,
+Pantalon Dream,Pantalones,G6,
+Pantalon Tamy,Pantalones,H2,
+Pantalon Tamy,Pantalones,H3,
+Pantalon Tamy,Pantalones,H4,
+Pantalon Jose,Pantalones,H5,
+Pantalon Jose,Pantalones,H6,
+Leggin Maca,Pantalones,I2,
+Pantalon Lourdes,Pantalones,I3,
+Pantalon Catarina,Pantalones,I3,
+Pantalon Cali,Pantalones,I4,
+Pantalon Inna,Pantalones,I4,
+Pantalon Berilo,Pantalones,I4,
+Chupin Marie,Pantalones,I5,
+Pantalon Agatha,Pantalones,I5,
+Pantalon Ines,Pantalones,I6,
+Pantalon Giorgia,Pantalones,I6,
+Oxford Benito,Pantalones,I6,
+Pantalon Mizzu,Pantalones,I6,
+Pantalon Print,Pantalones,J2,
+Pantalon Male,Pantalones,J2,
+Pantalon Look,Pantalones,J3,
+Pantalon Verito,Pantalones,J3,
+Oxford Irupe,Pantalones,J3,
+Pantalon Mary,Pantalones,J3,
+Pantalon Sunny,Pantalones,J3,
+Pantalon Vero,Pantalones,J3,
+Pantalon Pilar,Pantalones,J4,
+Pantalon Jaci,Pantalones,J5,
+Pantalon Jona,Pantalones,J5,
+Oxford Gimena,Pantalones,J5,
+Pantalon Jade,Pantalones,J5,
+Pantalon Iarina,Pantalones,J5,
+Pantalon Guadalupe,Pantalones,J6,
+Pantalon Shuli,Pantalones,J6,
+Pantalon Pirita,Pantalones,K2,
+Pantalon Pirita,Pantalones,K3,
+Pantalon Pirita,Pantalones,K4,
+Pantalon Pirita,Pantalones,K5,
+Pantalon Pirita,Pantalones,K6,
+Pantalon Pirita,Pantalones,L2,
+Pantalon Pirita,Pantalones,L3,
+Pantalon Keiko,Pantalones,L3,
+Pantalon Samy,Pantalones,L3,
+Pantalon Alis,Pantalones,L3,
+Pantalon Vale,Pantalones,L3,
+Pantalon Pili,Pantalones,L3,
+Oxford Jackes,Pantalones,L3,
+Pantalon Ramira,Pantalones,L4,
+Pantalon Flo,Pantalones,L4,
+Pantalon Lycha,Pantalones,L4,
+Legging Morris,Pantalones,L4,
+Pantalon Thelma,Pantalones,L4,
+Pantalon Perla,Pantalones,L5,
+Pantalon Perla,Pantalones,L6,
+Pantalon Helena,Pantalones,M2,
+Pantalon Helena,Pantalones,M3,
+Pantalon Sol,Pantalones,M4,
+Pantalon Sol,Pantalones,M5,
+Pantalon Sol,Pantalones,M6,
+#REMERAS KIDS
+Remera Kids India,Remeras Kids,A1,
+Remera Kids Board,Remeras Kids,A1,
+Remera Kids Vida,Remeras Kids,A1,
+Remera Kids Flowers,Remeras Kids,A1,
+Remera Kids Please,Remeras Kids,A1,
+Remera Kids Magic,Remeras Kids,A2,
+Remera Varon Jungle,Remeras Kids,A2,
+Remera Kids Palm,Remeras Kids,A3,
+Remera Nena Bicycle,Remeras Kids,A3,
+Remera Kids Nella,Remeras Kids,A4,
+Remera Kids Forest,Remeras Kids,A4,
+Remera Kids Sun,Remeras Kids,A4,
+Remera Kids Picnic,Remeras Kids,A4,
+Remera Kids Augusto,Remeras Kids,A5,
+Remera Kids Blas,Remeras Kids,A5,
+Remera Kids Robie,Remeras Kids,A6,
+Remera Kids Tinta,Remeras Kids,A6,
+Remera Kids Planeta,Remeras Kids,A6,
+Remera Kids Nacho,Remeras Kids,B1,
+Remera Kids Lovely,Remeras Kids,B1,
+Remera Kids Lili,Remeras Kids,B1,
+Remera Kids Camila,Remeras Kids,B2,
+Remera Kids Ohana,Remeras Kids,B2,
+Remera Kids Abril,Remeras Kids,B3,
+Remera Kids Mico,Remeras Kids,B3,
+Remera Kids Teo,Remeras Kids,B4,
+Remera Varon Jere,Remeras Kids,B4,
+Remera Nena Sunshine,Remeras Kids,B4,
+Remera Varon Thiago,Remeras Kids,B5,
+Remera Nena Free,Remeras Kids,B5,
+Remera Kids Sebastian,Remeras Kids,B6,
+Remera Kids Martin,Remeras Kids,B6,
+Remera Kids Soul,Remeras Kids,C1,
+Remera Kids Cruz,Remeras Kids,C1,
+Remera Kids Benjamin,Remeras Kids,C1,
+Remera Kids Wild,Remeras Kids,C2,
+Remera Nena Frutillas,Remeras Kids,C2,
+Remera Kids Muna,Remeras Kids,C3,
+Remera Varon Climber,Remeras Kids,C3,
+Musculosa Kids Atenea,Remeras Kids,C4,
+Musculosa Kids Lara,Remeras Kids,C4,
+Remera Nena Lover,Remeras Kids,C4,
+Remera Varon Galo,Remeras Kids,C5,
+Remera Varon Adventure,Remeras Kids,C6,
+Remera Varon Forest,Remeras Kids,C6,
+#BUZOS
+Proximo Ingreso,Buzos,A1,
+Buzo Outside,Buzos,A2,
+Buzo Outside,Buzos,A3,
+Buzo Outside,Buzos,A4,
+Buzo Ariadna,Buzos,A4,
+Buzo Roll,Buzos,A4,
+Proximo Ingreso,Buzos,A5,
+Proximo Ingreso,Buzos,A6,
+Proximo Ingreso,Buzos,B1,
+Buzo Delhi,Buzos,B2,
+Buzo Delhi,Buzos,B3,
+Buzo Delhi,Buzos,B4,
+Buzo Baires,Buzos,B4,
+Buzo Baires,Buzos,B5,
+Buzo Baires,Buzos,B6,
+Buzo Pauli,Buzos,B6,
+Proximo Ingreso,Buzos,C1,
+Campera Lichi,Buzos,C2,
+Campera Lichi,Buzos,C3,
+Campera Lichi,Buzos,C4,
+Proximo Ingreso,Buzos,C5,
+Proximo Ingreso,Buzos,C6,
+Buzo Guadalupe,Buzos,D1,
+Buzo Guadalupe,Buzos,D2,
+Buzo Guadalupe,Buzos,D3,
+Buzo Guadalupe,Buzos,D4,
+Buzo Guadalupe,Buzos,D5,
+Buzo Guadalupe,Buzos,D6,
+Proximo Ingreso,Buzos,E1,
+Proximo Ingreso,Buzos,E2,
+Proximo Ingreso,Buzos,E3,
+Proximo Ingreso,Buzos,E4,
+Proximo Ingreso,Buzos,E5,
+Proximo Ingreso,Buzos,E6,
+Proximo Ingreso,Buzos,F1,
+Proximo Ingreso,Buzos,F2,
+Proximo Ingreso,Buzos,F3,
+Proximo Ingreso,Buzos,F4,
+Proximo Ingreso,Buzos,F5,
+Proximo Ingreso,Buzos,F6,
+Campera Valeria,Buzos,G1,
+Campera Valeria,Buzos,G2,
+Campera Valeria,Buzos,G3,
+Campera Valeria,Buzos,G4,
+Campera Valeria,Buzos,G5,
+Campera Valeria,Buzos,G6,
+Proximo Ingreso,Buzos,H1,
+Buzo More,Buzos,H2,
+Buzo More,Buzos,H3,
+Buzo Francisca,Buzos,H4,
+Buzo Choices,Buzos,H4,
+Buzo Jade,Buzos,H4,
+Buzo Azu,Buzos,H4,
+Buzo Calisto,Buzos,H4,
+Buzo Margot,Buzos,H4,
+Buzo Daydream,Buzos,H4,
+Buzo Camelia,Buzos,H4,
+Buzo Deepack Frisa,Buzos,H4,
+Buzo Elena,Buzos,H4,
+Buzo Frisa Street,Buzos,H5,
+Buzo Madison,Buzos,H5,
+Buzo Floyd,Buzos,H5,
+Buzo Nirvana,Buzos,H5,https://santabohemia.b-cdn.net/Content/UploadDirectory/products/14207/image_7e5e3d6c-c0d1-423a-b8c7-e65e5794fe82.jpg
+Buzo Maggie,Buzos,H5,
+Buzo Kika,Buzos,H5,
+Buzo Gaby,Buzos,H5,
+Buzo Olivia,Buzos,H5,
+Campera Emma,Buzos,H5,
+Campera You,Buzos,H5,
+Campera Sophia,Buzos,H5,
+Campera Vanta,Buzos,H5,
+Campera Oriana,Buzos,H5,
+Proximo Ingreso,Buzos,H6,
+Proximo Ingreso,Buzos,I1,
+Buzo Rocio,Buzos,I2,
+Campera Liliam,Buzos,I2,
+Campera Nirvana,Buzos,I3,
+Campera Nirvana,Buzos,I4,
+Buzo Beatles,Buzos,I4,
+Buzo Federica,Buzos,I5,
+Buzo Valentina,Buzos,I5,
+Buzo Smiling,Buzos,I6,
+Buzo Cala,Buzos,I6,
+Buzo Alyana,Buzos,I6,
+Proximo Ingreso,Buzos,J1,
+Buzo Champions,Buzos,J2,
+Buzo Champions,Buzos,J3,
+Buzo Vera,Buzos,J4,
+Buzo Lupin,Buzos,J4,
+Buzo Pink,Buzos,J5,
+Proximo Ingreso,Buzos,J6,
+Buzo Catalina,Buzos,K1,
+Buzo Catalina,Buzos,K2,
+Buzo Catalina,Buzos,K3,
+Buzo Catalina,Buzos,K4,
+Buzo Catalina,Buzos,K5,
+Buzo Catalina,Buzos,K6,
+Proximo Ingreso,Buzos,L1,
+Proximo Ingreso,Buzos,L2,
+Proximo Ingreso,Buzos,L3,
+Proximo Ingreso,Buzos,L4,
+Proximo Ingreso,Buzos,L5,
+Proximo Ingreso,Buzos,L6,
+#CHALECO
+Chaleco Cey,Chaleco,M1,
+Chaleco Mia,Chaleco,M1,
+Chaleco Emilia,Chaleco,M1,
+Chaleco Synti,Chaleco,M1,
+Chaleco Julia,Chaleco,M2,
+Chaleco Julia,Chaleco,M3,
+Chaleco Largo Lola,Chaleco,M4,
+Chaleco Lucky,Chaleco,M4,
+Chaleco Valen,Chaleco,M4,
+Chaleco Colombia,Chaleco,M5,
+Chaleco Largo Juana,Chaleco,M6,
+Proximo Ingreso,Chaleco,N1,
+Chaleco Melody,Chaleco,N2,
+Chaleco Melody,Chaleco,N3,
+Chaleco Gala,Chaleco,N3,
+Proximo Ingreso,Chaleco,N4,
+Campera Oviedo,Chaleco,N5,
+Chaleco Maitena,Chaleco,N6,
+Proximo Ingreso,Chaleco,Ñ1,
+Chaleco Fiorella,Chaleco,Ñ2,
+Chaleco Bogota,Chaleco,Ñ3,
+Chaleco Rufina,Chaleco,Ñ4,
+Chaleco Rufina,Chaleco,Ñ5,
+Proximo Ingreso,Chaleco,Ñ6,
+Proximo Ingreso,Chaleco,O1,
+Proximo Ingreso,Chaleco,O2,
+Proximo Ingreso,Chaleco,O3,
+Proximo Ingreso,Chaleco,O4,
+Proximo Ingreso,Chaleco,O5,
+Proximo Ingreso,Chaleco,O6,
+#PUNTERA
+Saco Felisa,Sacos,1.1,
+Saco Felisa,Sacos,1.2,
+Saco Merlina,Sacos,1.3,
+Saco Merlina,Sacos,1.4,
+Saco Kate,Sacos,1.5,
+Saco Lula,Sacos,1.6,
+Saco Lula,Sacos,1.7,
+Saco Centenario,Sacos,1.7,
+Saco Ficus,Sacos,1.7,
+Saco Roma,Sacos,1.7,
+Saco Zag,Sacos,1.7,
+Saco Tini,Sacos,1.8,
+Sweater Compostela,Sweater,1.9,
+Sweater Compostela,Sweater,1.10,
+Sweater Granada,Sweater,2.1,
+Sweater Granada,Sweater,2.2,
+Sweater Granada,Sweater,2.3,
+Sweater Granada,Sweater,2.4,
+Sweater Granada,Sweater,2.5,
+Sweater Granada,Sweater,2.6,
+Proximo Ingreso,Sweater,2.7,
+Sweater San Sebastian,Sweater,2.8,
+Sweater San Sebastian,Sweater,2.9,
+Sweater San Sebastian,Sweater,2.10,
+Sweater Edith,Sweater,2.11,
+Sweater Granada,Sweater,2.12,
+#POLERAS
+Polera Danu,Poleras,C1,
+Polera Marcia,Poleras,C1,
+Polera Mc Eugenia,Poleras,C1,
+Polera Amapola,Poleras,C2,
+Polera Dakota,Poleras,C2,
+Polera Nara,Poleras,C2,
+Polera Mc Amsterdam,Poleras,C3,
+Polera Mc Amsterdam,Poleras,C4,
+Polera Mc Lara,Poleras,C5,
+Polera Alfa,Poleras,C6,
+Polera Josiana,Poleras,D1,
+Polera Zaire,Poleras,D1,
+Polera Mc Maca,Poleras,D1,
+Polera May,Poleras,D1,
+Polera Wimble,Poleras,D1,
+Polera Abril,Poleras,D1,
+Polera Male,Poleras,D1,
+Polera Ml Alba,Poleras,D2,
+Polera Innsbruck,Poleras,D2,
+Polera Regina,Poleras,D3,
+Polera Mc Leti,Poleras,D3,
+Polera Juliana,Poleras,D4,
+Polera Hampstead,Poleras,D4,
+Polera Grecia,Poleras,D5,
+Polera Constanza,Poleras,D5,
+Polera Constanza,Poleras,D6,
+#CAMISAS
+Proximo Ingreso,Camisas,A1,
+Camisa Larga Emilia,Camisas,A2,
+Camisa Larga Emilia,Camisas,A3,
+Camisa Larga Emilia,Camisas,A4,
+Blusa Dari,Camisas,A5,
+Blusa Dari,Camisas,A6,
+Proximo Ingreso,Camisas,B1,
+Camisa Renata,Camisas,B2,
+Camisa Renata,Camisas,B3,
+Proximo Ingreso,Camisas,B4,
+Proximo Ingreso,Camisas,B5,
+Proximo Ingreso,Camisas,B6,
+Camisa Carola,Camisas,E1,
+Camisa Larga Lamas,Camisas,E1,
+Camisa Nuria,Camisas,E2,
+Camisa Nuria,Camisas,E3,
+Camisa Blonda,Camisas,E3,
+Camisa Amira,Camisas,E4,
+Camisa Rupay,Camisas,E4,
+Camisa Martina,Camisas,E5,
+Camisa Martina,Camisas,E6,
+Proximo Ingreso,Camisas,F1,
+Camisa Josefa,Camisas,F2,
+Camisa Josefa,Camisas,F3,
+Camisa Irina,Camisas,F3,
+Camisa Bliss,Camisas,F3,
+Camisa Ginger,Camisas,F3,
+Camisa Magnolia,Camisas,F3,
+Camisa Valery,Camisas,F3,
+Camisa Morella,Camisas,F3,
+Camisa Aries,Camisas,F3,
+Camisa Naty,Camisas,F3,
+Camisa Pollensa,Camisas,F3,
+Camisa Lula,Camisas,F3,
+Camisa Trini,Camisas,F4,
+Camisa Trini,Camisas,F5,
+Camisa Regina,Camisas,F6,
+Camisa Virginia,Camisas,G1,
+Camisa Virginia,Camisas,G2,
+Camisa Virginia,Camisas,G3,
+Camisa Virginia,Camisas,G4,
+Camisa Virginia,Camisas,G5,
+Camisa Virginia,Camisas,G6,
+Proximo Ingreso,Camisas,H1,
+Camisa Chantal,Camisas,H2,
+Camisa Chantal,Camisas,H3,
+Camisa Bloom,Camisas,H4,
+Camisa Bloom,Camisas,H5,
+Camisa Adry,Camisas,H5,
+Camisa Adry,Camisas,H6,
+Camisa Escocia,Camisas,H6,
+#PERCHERO 1
+Trench Caleta,Perchero,1,
+Saco Print,Perchero,1,
+Saco Sol,Perchero,1,
+Saco Melisa,Perchero,1,
+#REMERAS
+Musculosa Emma,Remeras,P1,
+Musculosa Rose,Remeras,P1,
+Musculosa Alyna,Remeras,P1,
+Musculosa Lucha,Remeras,P1,
+Musculosa Cherry,Remeras,P1,
+Musculosa Ika,Remeras,P1,
+Musculosa Lara,Remeras,P1,
+Musculosa Bazza,Remeras,P1,
+Musculosa Caty,Remeras,P1,
+Musculosa Cati,Remeras,P1,
+Musculosa Eira,Remeras,P1,
+Musculosa Daily,Remeras,P2,
+Musculosa Liberte,Remeras,P2,
+Musculosa Ozzie,Remeras,P2,
+Musculosa Cande,Remeras,P2,
+Musculosa Daiana,Remeras,P3,
+Musculosa Doris,Remeras,P3,
+Musculosa Rio,Remeras,P3,
+Musculosa Namaste,Remeras,P3,
+Musculosa Ivana,Remeras,P3,
+Musculosa Luli,Remeras,P3,
+Musculosa Valen,Remeras,P3,
+Musculosa Better,Remeras,P4,
+Musculosa Mary,Remeras,P4,
+Musculosa Iara,Remeras,P4,
+Musculosa Gypsy,Remeras,P4,
+Musculosa Felicia,Remeras,P5,
+Musculosa Maite,Remeras,P5,
+Musculosa Fever,Remeras,P5,
+Musculosa Anna,Remeras,P5,
+Musculosa Mica,Remeras,P6,
+Musculosa Abril,Remeras,P6,
+Musculosa Camila,Remeras,P6,
+Musculosa Cati,Remeras,P6,
+Musculosa Elisa,Remeras,P6,
+Musculosa Aly,Remeras,P6,
+Musculosa Rene,Remeras,P6,
+Musculosa Penny,Remeras,Q1,
+Musculosa Martina,Remeras,Q1,
+Musculosa Melisa,Remeras,Q1,
+Musculosa Ari,Remeras,Q1,
+Musculosa Aura,Remeras,Q1,
+Musculosa Maru,Remeras,Q1,
+Musculosa Alba,Remeras,Q1,
+Musculosa Ibiza,Remeras,Q1,
+Musculosa Petra,Remeras,Q1,
+Musculosa Carminia,Remeras,Q2,
+Musculosa Zoe,Remeras,Q2,
+Musculosa Keka,Remeras,Q2,
+Musculosa Fresh,Remeras,Q2,
+Musculosa Opposites,Remeras,Q2,
+Musculosa Ilusion,Remeras,Q2,
+Musculosa Juana,Remeras,Q2,
+Musculosa Hele,Remeras,Q2,
+Musculosa Chill,Remeras,Q2,
+Musculosa Stand,Remeras,Q2,
+Musculosa Audrey,Remeras,Q2,
+Musculosa Lucia,Remeras,Q2,
+Musculosa Coral,Remeras,Q3,
+Musculosa Valu,Remeras,Q3,
+Musculosa Portia,Remeras,Q3,
+Musculosa Portia,Remeras,Q4,
+Musculosa Gime,Remeras,Q5,
+Musculosa Amy,Remeras,Q5,
+Musculosa Funny,Remeras,Q5,
+Musculosa Greta,Remeras,Q6,
+Musculosa Romi,Remeras,Q6,
+Musculosa Cameron,Remeras,Q6,
+Top Giustina,Remeras,R1,
+Top Nacha,Remeras,R1,
+Top Laeti,Remeras,R1,
+Strapless Maitena,Remeras,R1,
+Strapless Carmela,Remeras,R1,
+Top Enrica,Remeras,R2,
+Top Gime,Remeras,R2,
+Top Marruecos,Remeras,R2,
+Top Julia,Remeras,R3,
+Top Paz,Remeras,R3,
+Top Isla,Remeras,R3,
+Top Marea,Remeras,R3,
+Top Petra,Remeras,R3,
+Top Eva,Remeras,R3,
+Top Daisy,Remeras,R3,
+Top Brasil,Remeras,R3,
+Top Sevilla,Remeras,R3,
+Top Londres,Remeras,R4,
+Top Reversible,Remeras,R4,
+Top Filipa,Remeras,R4,
+Top Luli,Remeras,R4,
+Top Yucatan,Remeras,R4,
+Musculosa Alda,Remeras,R4,
+Musculosa Alda,Remeras,R5,
+Musculosa Alda,Remeras,R6,
+            `;
+
+            function buscarPrendas(textoBusqueda) {
+                contenedorResultados.innerHTML = ''; // Limpiar resultados al inicio de cada búsqueda
+
+                const textoBusquedaLower = textoBusqueda.trim().toLowerCase();
+
+                if (textoBusquedaLower === '') {
+                    return; // Si el texto de búsqueda está vacío, no hacer nada más
+                }
+
+                const lineas = datosPrendasCrudo.trim().split('\n');
+                // Saltar la primera línea que es el encabezado de las columnas si lo hay
+                const filas = lineas.slice(1);
+
+                let resultadosEncontrados = false; // Bandera para saber si encontramos algo
+
+                filas.forEach(fila => {
+                    // Ignorar líneas que son solo encabezados de categoría (empiezan con '#')
+                    if (fila.trim().startsWith('#')) {
+                        return; // Salta a la siguiente iteración del bucle
+                    }
+
+                    const columnas = fila.split(',');
+                    // Esperamos al menos 3 columnas para nombre, tipo, ubicación y la 4ta para la URL de imagen
+                    if (columnas.length >= 3) {
+                        const nombre = columnas[0] ? columnas[0].trim().toLowerCase() : '';
+                        const tipo = columnas[1] ? columnas[1].trim().toLowerCase() : '';
+                        const ubicacion = columnas[2] ? columnas[2].trim().toLowerCase() : '';
+                        const imagenUrl = columnas[3] ? columnas[3].trim() : ''; // El cuarto elemento es la URL de la imagen
+
+                        // Verificar si el texto de búsqueda (en minúsculas) está incluido en nombre, tipo o ubicación (también en minúsculas)
+                        if (nombre.includes(textoBusquedaLower) || tipo.includes(textoBusquedaLower) || ubicacion.includes(textoBusquedaLower)) {
+                            resultadosEncontrados = true; // Encontramos al menos un resultado
+
+                            const prendaDiv = document.createElement('div');
+                            prendaDiv.classList.add('prenda');
+
+                            let imagenHtml = '';
+                            // Si imagenUrl existe y no es una de las "palabras clave" de no-imagen
+                            // y la URL empieza con "http" para asegurar que es una URL válida
+                            if (imagenUrl && !imagenUrl.toLowerCase().includes('proximo ingreso') && !imagenUrl.toLowerCase().includes('sin_imagen') && imagenUrl.startsWith('http')) {
+                                imagenHtml = `<img src="${imagenUrl}" alt="${columnas[0]}" onerror="this.onerror=null;this.src='https://via.placeholder.com/200x200?text=Imagen+no+disponible';">`;
+                            } else {
+                                // Muestra "Imagen no disponible" si no hay URL o es un "Próximo Ingreso"
+                                imagenHtml = `<img src="https://via.placeholder.com/200x200?text=Imagen+no+disponible" alt="Imagen no disponible">`;
+                            }
+
+                            prendaDiv.innerHTML = `
+                                ${imagenHtml}
+                                <h3>${columnas[0].trim()}</h3>
+                                <p>Tipo: ${columnas[1].trim()}</p>
+                                <p>Ubicación: ${columnas[2].trim()}</p>
+                            `;
+                            contenedorResultados.appendChild(prendaDiv);
+                        }
+                    }
+                });
+
+                // Si después de revisar todas las filas no se encontraron resultados
+                if (!resultadosEncontrados && textoBusquedaLower !== '') {
+                    contenedorResultados.innerHTML = '<p>No se encontraron resultados.</p>';
+                } else if (textoBusquedaLower === '') {
+                    // Si el campo de búsqueda está vacío, no mostrar mensaje "No se encontraron resultados".
+                    contenedorResultados.innerHTML = '';
+                }
+            }
+
+            // Agregado un pequeño delay al input para no buscar en cada tecla (opcional, pero mejora rendimiento)
+            let timer;
+            campoBusqueda.addEventListener('input', function() {
+                clearTimeout(timer); // Limpia el temporizador anterior
+                const valorBusqueda = this.value; // Captura el valor actual
+                timer = setTimeout(function() {
+                    buscarPrendas(valorBusqueda); // Ejecuta la búsqueda después de un breve retraso
+                }, 150); // Retraso de 150 milisegundos (ajusta si es necesario)
+            });
+
+            // No mostrar todos los resultados al inicio
+            // buscarPrendas(''); // Descomentar si quieres que cargue todo al inicio al abrir la página
+        });
+    </script>
+
+    <div id="watermark">
+        © 2025 CMN
+    </div>
+</body>
+</html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Buscador de Prendas</title>
+    <link rel="icon" href="favicom.ico" type="image/x-icon">
+    <style>
+        body {
+            font-family: sans-serif;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            justify-content: flex-start;
+            background-color: #f4f4f4; /* Color de fondo de la página */
+            padding: 20px; /* Añade un poco de padding general para evitar que el contenido toque los bordes */
+            box-sizing: border-box; /* Asegura que el padding no añada ancho extra */
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #333; /* Color del título principal */
+            font-size: 2.5em; /* Tamaño del título para pantallas grandes */
+        }
+
+        #buscador {
+            margin-bottom: 20px;
+            width: 100%;
+            max-width: 600px; /* Limita el ancho máximo del buscador */
+            display: flex;
+            justify-content: center;
+        }
+
+        #campoBusqueda {
+            padding: 12px 20px; /* Aumenta el padding para mejor toque en móviles */
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            width: 100%; /* El 100% ocupará todo el ancho del #buscador */
+            font-size: 1em; /* Ajusta el tamaño de fuente para mejor lectura */
+            box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1); /* Sombra del campo de búsqueda */
+            box-sizing: border-box; /* Importante para que el padding no exceda el 100% */
+        }
+
+        #campoBusqueda:focus {
+            outline: none;
+            border-color: #007bff; /* Color del borde al enfocar */
+            box-shadow: 2px 2px 7px rgba(0, 123, 255, 0.3); /* Sombra al enfocar */
+        }
+
+        #contenedorResultados {
+            margin-top: 20px;
+            width: 100%; /* Ocupa el 100% del ancho disponible */
+            max-width: 1200px; /* Limita el ancho máximo del contenedor de resultados */
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center; /* Centra las prendas horizontalmente */
+            gap: 20px; /* Espacio entre las prendas */
+        }
+
+        .prenda {
+            border: 1px solid #ddd;
+            padding: 15px;
+            border-radius: 5px;
+            width: calc(33.33% - 20px); /* 3 columnas en pantallas grandes, ajustado por el gap */
+            box-sizing: border-box;
+            background-color: #fff; /* Fondo de cada prenda */
+            box-shadow: 1px 1px 3px rgba(0, 0, 0, 0.05); /* Sombra suave de las prendas */
+            flex-grow: 1; /* Permite que las prendas crezcan para ocupar el espacio */
+            min-width: 280px; /* Ancho mínimo para evitar que se hagan demasiado pequeñas */
         }
 
         /* Remueve el margin-right que ya no es necesario con gap */
