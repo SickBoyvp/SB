@@ -70,10 +70,12 @@
             box-shadow: 1px 1px 3px rgba(0, 0, 0, 0.05); /* Sombra suave de las prendas */
             flex-grow: 1; /* Permite que las prendas crezcan para ocupar el espacio */
             min-width: 280px; /* Ancho mínimo para evitar que se hagan demasiado pequeñas */
-            display: flex; /* Para organizar el contenido, especialmente la imagen */
+            display: flex; /* Para organizar el contenido */
             flex-direction: column; /* Coloca los elementos uno debajo del otro */
             align-items: center; /* Centra el contenido horizontalmente */
             text-align: center; /* Centra el texto */
+            justify-content: center; /* Centra el contenido verticalmente */
+            gap: 5px; /* Reduje un poco el gap entre elementos de texto */
         }
 
         .prenda h3 {
@@ -81,11 +83,12 @@
             color: #555; /* Color del título de la prenda */
             font-size: 1.2em;
             word-break: break-word; /* Evita desbordamiento de texto largo */
+            margin-bottom: 5px; /* Añadido un poco de espacio debajo del título */
         }
 
         .prenda p {
             color: #777; /* Color del texto de la prenda */
-            margin-bottom: 5px;
+            margin-bottom: 0; /* Reducido el margen inferior de los párrafos */
             font-size: 0.9em;
             word-break: break-word; /* Evita desbordamiento de texto largo */
         }
