@@ -1025,13 +1025,9 @@ Musculosa Alda,Remeras,R6,
                             prendaDiv.classList.add('prenda');
 
                             let imagenHtml = '';
-                            // Si imagenUrl existe y no es una de las "palabras clave" de no-imagen
-                            // y la URL empieza con "http" para asegurar que es una URL válida
-                            if (imagenUrl && !imagenUrl.toLowerCase().includes('proximo ingreso') && !imagenUrl.toLowerCase().includes('sin_imagen') && imagenUrl.startsWith('http')) {
-                                imagenHtml = `<img src="${imagenUrl}" alt="${columnas[0]}" onerror="this.onerror=null;this.src='https://via.placeholder.com/200x200?text=Imagen+no+disponible';">`;
-                            } else {
-                                // Muestra "Imagen no disponible" si no hay URL o es un "Próximo Ingreso"
-                                imagenHtml = `<img src="https://via.placeholder.com/200x200?text=Imagen+no+disponible" alt="Imagen no disponible">`;
+                            // Si imagenUrl existe y no es "Proximo Ingreso" o "Sin imagen" y comienza con "http"
+                            if (imagenUrl && !['proximo ingreso', 'sin imagen', ''].includes(imagenUrl.toLowerCase()) && imagenUrl.startsWith('http')) {
+                                imagenHtml = `<img src="${imagenUrl}" alt="${columnas[0]}" onerror="this.onerror=null;this.style.display='none';">`;
                             }
 
                             prendaDiv.innerHTML = `
